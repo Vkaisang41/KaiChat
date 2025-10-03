@@ -4,9 +4,6 @@ import mongoose from "mongoose";
 import cors from "cors";
 import http from "http";
 import { Server } from "socket.io";
-import path from "path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
 import jwt from "jsonwebtoken";
 
 // ----------------- Setup -----------------
@@ -18,23 +15,23 @@ const io = new Server(server, {
   cors: {
     origin: process.env.CLIENT_URL || "*",
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
 // ----------------- Middleware -----------------
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "*",
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ----------------- MongoDB Connection -----------------
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
@@ -43,7 +40,7 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "KaiChat backend is running 🚀" });
 });
 
-// ----------------- JWT Auth Middleware Example -----------------
+// ----------------- JWT Auth Middleware -----------------
 const authenticateToken = (req, res, next) => {
   const token = req.headers["authorization"]?.split(" ")[1];
   if (!token) return res.status(401).json({ error: "No token provided" });
@@ -72,13 +69,6 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("🔴 A user disconnected:", socket.id);
   });
-});
-
-// ----------------- Serve React Frontend -----------------
-app.use(express.static(path.join(__dirname, "../../frontend/build")));
-
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, "../../frontend/build", "index.html"));
 });
 
 // ----------------- Start Server -----------------
