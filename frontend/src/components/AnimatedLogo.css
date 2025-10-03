@@ -1,0 +1,421 @@
+.animated-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 40px;
+}
+
+.animated-logo.small {
+  padding: 20px;
+}
+
+.animated-logo.medium {
+  padding: 30px;
+}
+
+.animated-logo.large {
+  padding: 60px;
+}
+
+.logo-container {
+  position: relative;
+  z-index: 2;
+}
+
+.logo-icon {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.logo-circle {
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+  animation: logoFloat 3s ease-in-out infinite;
+}
+
+.animated-logo.small .logo-circle {
+  width: 60px;
+  height: 60px;
+}
+
+.animated-logo.medium .logo-circle {
+  width: 80px;
+  height: 80px;
+}
+
+.logo-emoji {
+  font-size: 60px;
+  animation: emojiRotate 4s ease-in-out infinite;
+}
+
+.animated-logo.small .logo-emoji {
+  font-size: 30px;
+}
+
+.animated-logo.medium .logo-emoji {
+  font-size: 40px;
+}
+
+.logo-pulse {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  border: 3px solid rgba(102, 126, 234, 0.3);
+  border-radius: 50%;
+  animation: logoPulse 2s ease-in-out infinite;
+}
+
+.logo-text {
+  text-align: center;
+  animation: textFadeIn 1s ease-out 0.5s both;
+}
+
+.app-name {
+  font-size: 3rem;
+  margin: 0 0 10px 0;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.animated-logo.small .app-name {
+  font-size: 1.5rem;
+}
+
+.animated-logo.medium .app-name {
+  font-size: 2rem;
+}
+
+.app-tagline {
+  font-size: 1.1rem;
+  color: #666;
+  margin: 0;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.animated-logo.small .app-tagline {
+  font-size: 0.9rem;
+}
+
+.animated-logo.medium .app-tagline {
+  font-size: 1rem;
+}
+
+/* Floating particles */
+.logo-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  opacity: 0.6;
+}
+
+.particle:nth-child(1) {
+  top: 20%;
+  left: 20%;
+  animation: particleFloat1 8s ease-in-out infinite;
+}
+
+.particle:nth-child(2) {
+  top: 30%;
+  right: 25%;
+  animation: particleFloat2 6s ease-in-out infinite;
+}
+
+.particle:nth-child(3) {
+  bottom: 30%;
+  left: 30%;
+  animation: particleFloat3 7s ease-in-out infinite;
+}
+
+.particle:nth-child(4) {
+  bottom: 20%;
+  right: 20%;
+  animation: particleFloat4 9s ease-in-out infinite;
+}
+
+.particle:nth-child(5) {
+  top: 50%;
+  left: 10%;
+  animation: particleFloat5 5s ease-in-out infinite;
+}
+
+/* Animations */
+@keyframes logoFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+}
+
+@keyframes emojiRotate {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-5deg) scale(1.05);
+  }
+  75% {
+    transform: rotate(5deg) scale(0.95);
+  }
+}
+
+@keyframes logoPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.1;
+  }
+}
+
+@keyframes textFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes particleFloat1 {
+  0%, 100% {
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(10px) translateY(-15px);
+  }
+  50% {
+    transform: translateX(-5px) translateY(-10px);
+  }
+  75% {
+    transform: translateX(15px) translateY(5px);
+  }
+}
+
+@keyframes particleFloat2 {
+  0%, 100% {
+    transform: translateX(0) translateY(0);
+  }
+  33% {
+    transform: translateX(-12px) translateY(8px);
+  }
+  66% {
+    transform: translateX(8px) translateY(-12px);
+  }
+}
+
+@keyframes particleFloat3 {
+  0%, 100% {
+    transform: translateX(0) translateY(0);
+  }
+  50% {
+    transform: translateX(-8px) translateY(-15px);
+  }
+}
+
+@keyframes particleFloat4 {
+  0%, 100% {
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(-10px) translateY(-5px);
+  }
+  75% {
+    transform: translateX(12px) translateY(-8px);
+  }
+}
+
+@keyframes particleFloat5 {
+  0%, 100% {
+    transform: translateX(0) translateY(0);
+  }
+  40% {
+    transform: translateX(15px) translateY(-10px);
+  }
+  80% {
+    transform: translateX(-8px) translateY(12px);
+  }
+}
+
+/* Animation variants */
+.animated-logo.bounce .logo-circle {
+  animation: logoBounce 2s ease-in-out infinite;
+}
+
+.animated-logo.spin .logo-circle {
+  animation: logoSpin 4s linear infinite;
+}
+
+.animated-logo.pulse .logo-circle {
+  animation: logoPulseMain 2s ease-in-out infinite;
+}
+
+@keyframes logoBounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-15px);
+  }
+  60% {
+    transform: translateY(-7px);
+  }
+}
+
+@keyframes logoSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes logoPulseMain {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .app-tagline {
+    color: #ccc;
+  }
+  
+  .particle {
+    background: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%);
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .animated-logo {
+    padding: 30px 20px;
+  }
+  
+  .logo-circle {
+    width: 100px !important;
+    height: 100px !important;
+  }
+  
+  .logo-emoji {
+    font-size: 50px !important;
+  }
+  
+  .app-name {
+    font-size: 2.5rem !important;
+  }
+  
+  .app-tagline {
+    font-size: 1rem !important;
+  }
+  
+  .particle {
+    width: 4px;
+    height: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-circle {
+    width: 80px !important;
+    height: 80px !important;
+  }
+  
+  .logo-emoji {
+    font-size: 40px !important;
+  }
+  
+  .app-name {
+    font-size: 2rem !important;
+  }
+  
+  .app-tagline {
+    font-size: 0.9rem !important;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .animated-logo * {
+    animation: none !important;
+  }
+  
+  .logo-circle {
+    transform: none !important;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .logo-circle {
+    border: 3px solid #000;
+  }
+  
+  .app-name {
+    color: #000 !important;
+    -webkit-text-fill-color: #000 !important;
+  }
+  
+  .app-tagline {
+    color: #333 !important;
+  }
+}
+
+/* Interactive hover effects */
+.animated-logo:hover .logo-circle {
+  animation-play-state: paused;
+  transform: scale(1.05);
+  box-shadow: 0 25px 50px rgba(102, 126, 234, 0.4);
+}
+
+.animated-logo:hover .logo-emoji {
+  animation-play-state: paused;
+  transform: scale(1.1);
+}
+
+.animated-logo:hover .particle {
+  animation-duration: 3s;
+}
+
+/* Loading state */
+.animated-logo.loading .logo-circle {
+  animation: logoSpin 1s linear infinite;
+}
+
+.animated-logo.loading .logo-pulse {
+  animation: logoPulse 1s ease-in-out infinite;
+}

@@ -1,0 +1,12 @@
+[0;1;32m●[0m mongod.service - MongoDB Database Server
+     Loaded: loaded (]8;;file://vincent-HP-EliteBook-820-G3/usr/lib/systemd/system/mongod.service/usr/lib/systemd/system/mongod.service]8;;; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)
+     Active: [0;1;32mactive (running)[0m since Mon 2025-09-29 03:04:44 EAT; 33s ago
+       Docs: ]8;;https://docs.mongodb.org/manualhttps://docs.mongodb.org/manual]8;;
+   Main PID: 13401 (mongod)
+     Memory: 76.7M (peak: 77.2M)
+        CPU: 3.439s
+     CGroup: /system.slice/mongod.service
+             └─[0;38;5;245m13401 /usr/bin/mongod --config /etc/mongod.conf[0m
+
+Sep 29 03:04:44 vincent-HP-EliteBook-820-G3 systemd[1]: Started mongod.service - MongoDB Database Server.
+Sep 29 03:04:44 vincent-HP-EliteBook-820-G3 mongod[13401]: {"t":{"$date":"2025-09-29T00:04:44.272Z"},"s":"I",  "c":"CONTROL",  "id":7484500, "ctx":"main","msg":"Environment variable MONGODB_CONFIG_OVERRIDE_NOFORK == 1, overriding \"processManagement.fork\" to false"}
