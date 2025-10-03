@@ -1,98 +1,88 @@
-import dotenv from "dotenv";
-dotenv.config();
-
 import express from "express";
+import dotenv from "dotenv";
 import mongoose from "mongoose";
 import cors from "cors";
-import bodyParser from "body-parser";
-import jwt from "jsonwebtoken";
-import { createServer } from "http";
+import http from "http";
 import { Server } from "socket.io";
 import path from "path";
 import { fileURLToPath } from "url";
+import { dirname } from "path";
+import jwt from "jsonwebtoken";
 
-import User from "./models/User.js";
-
-// Routes
-import authRoutes from "./routes/authRoutes.js";
-import chatRoutes from "./routes/chatRoutes.js";
-import userRoutes from "./routes/userRoutes.js";
-import fileRoutes from "./routes/fileRoutes.js";
-import groupRoutes from "./routes/groupRoutes.js";
-import emojiRoutes from "./routes/emojiRoutes.js";
-import contactRoutes from "./routes/contactRoutes.js";
-
-// Get __dirname in ES Modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// ----------------- Setup -----------------
+dotenv.config();
 
 const app = express();
-const server = createServer(app);
-
-// ✅ Setup Socket.IO with CORS
+const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "*", // Render frontend URL
-    methods: ["GET", "POST"]
-  }
+    origin: process.env.CLIENT_URL || "*",
+    methods: ["GET", "POST"],
+  },
 });
 
-// ✅ Middleware
-app.use(cors({ origin: process.env.CLIENT_URL || "*" }));
-app.use(bodyParser.json());
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-// ✅ Connect MongoDB
+// ----------------- Middleware -----------------
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// ----------------- MongoDB Connection -----------------
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
   })
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
-// ✅ API Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/chat", chatRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/files", fileRoutes);
-app.use("/api/groups", groupRoutes);
-app.use("/api/emojis", emojiRoutes);
-app.use("/api/contacts", contactRoutes);
-
-// ⚠️ File uploads (not persistent on Render)
-app.use("/uploads", express.static("uploads"));
-
-// ✅ Serve React frontend in production
-const frontendPath = path.join(__dirname, "../frontend/build");
-app.use(express.static(frontendPath));
-
-app.get('/*', (req, res) => {
-  res.sendFile(path.join(frontendPath, "index.html"));
+// ----------------- Example API Route -----------------
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", message: "KaiChat backend is running 🚀" });
 });
 
-// ✅ Socket authentication
-io.use(async (socket, next) => {
-  try {
-    const token = socket.handshake.auth.token;
-    if (!token) return next(new Error("Authentication error"));
+// ----------------- JWT Auth Middleware Example -----------------
+const authenticateToken = (req, res, next) => {
+  const token = req.headers["authorization"]?.split(" ")[1];
+  if (!token) return res.status(401).json({ error: "No token provided" });
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).select("-password");
-
-    if (!user) return next(new Error("User not found"));
-
-    socket.user = user;
-    socket.handshake.auth.userId = user._id.toString();
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ error: "Invalid token" });
+    req.user = user;
     next();
-  } catch (error) {
-    next(new Error("Authentication error"));
-  }
+  });
+};
+
+// Protected route example
+app.get("/api/protected", authenticateToken, (req, res) => {
+  res.json({ message: "This is a protected route", user: req.user });
 });
 
-// ✅ Import chat socket logic
-import chatSocket from "./sockets/chatSocket.js";
-chatSocket(io);
+// ----------------- Socket.io -----------------
+io.on("connection", (socket) => {
+  console.log("🟢 A user connected:", socket.id);
 
-// ✅ Start server
+  socket.on("chatMessage", (msg) => {
+    console.log("💬 Message received:", msg);
+    io.emit("chatMessage", msg);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("🔴 A user disconnected:", socket.id);
+  });
+});
+
+// ----------------- Serve React Frontend -----------------
+app.use(express.static(path.join(__dirname, "../../frontend/build")));
+
+app.use((req, res) => {
+  res.sendFile(path.join(__dirname, "../../frontend/build", "index.html"));
+});
+
+// ----------------- Start Server -----------------
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
