@@ -29,20 +29,24 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const server = createServer(app);
 
+// ✅ Setup Socket.IO with CORS
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "*", // ✅ dynamic CORS
+    origin: process.env.CLIENT_URL || "*", // Render frontend URL
     methods: ["GET", "POST"]
   }
 });
 
-// Middleware
-app.use(cors());
+// ✅ Middleware
+app.use(cors({ origin: process.env.CLIENT_URL || "*" }));
 app.use(bodyParser.json());
 
 // ✅ Connect MongoDB
 mongoose
-  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
@@ -55,7 +59,7 @@ app.use("/api/groups", groupRoutes);
 app.use("/api/emojis", emojiRoutes);
 app.use("/api/contacts", contactRoutes);
 
-// Serve uploaded files
+// ⚠️ File uploads (not persistent on Render)
 app.use("/uploads", express.static("uploads"));
 
 // ✅ Serve React frontend in production
@@ -66,7 +70,7 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
 
-// Socket authentication middleware
+// ✅ Socket authentication
 io.use(async (socket, next) => {
   try {
     const token = socket.handshake.auth.token;
@@ -85,10 +89,10 @@ io.use(async (socket, next) => {
   }
 });
 
-// Socket.io setup
+// ✅ Import chat socket logic
 import chatSocket from "./sockets/chatSocket.js";
 chatSocket(io);
 
-// Start server
+// ✅ Start server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
