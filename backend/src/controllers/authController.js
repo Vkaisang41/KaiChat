@@ -100,83 +100,122 @@ export const login = asyncHandler(async (req, res) => {
 
 // Phone auth
 export const phoneAuth = asyncHandler(async (req, res) => {
-  const { phone, firebaseUid } = req.body;
+  try {
+    console.log('📱 Phone auth request received:', req.body);
 
-  if (!phone || !firebaseUid) {
-    res.status(400);
-    throw new Error("Phone and firebaseUid are required");
-  }
+    const { phone, firebaseUid } = req.body;
 
-  // First check by firebaseUid, then by phone number
-  let user = await User.findOne({
-    $or: [
-      { firebaseUid },
-      { phone }
-    ]
-  });
-
-  if (!user) {
-    // Create new user only if no user exists with this phone or firebaseUid
-    try {
-      user = await User.create({
-        fullName: `User ${phone}`,
-        username: phone,
-        phone,
-        firebaseUid,
+    if (!phone || !firebaseUid) {
+      console.error('❌ Phone and firebaseUid are required');
+      return res.status(400).json({
+        message: "Phone and firebaseUid are required"
       });
-    } catch (error) {
-      // Handle duplicate key error
-      if (error.code === 11000) {
-        // If duplicate error, try to find the existing user
-        user = await User.findOne({
-          $or: [
-            { firebaseUid },
-            { phone },
-            { username: phone }
-          ]
+    }
+
+    console.log(`📱 Authenticating user with phone: ${phone}, firebaseUid: ${firebaseUid}`);
+
+    // First check by firebaseUid, then by phone number
+    let user = await User.findOne({
+      $or: [
+        { firebaseUid },
+        { phone }
+      ]
+    });
+
+    console.log(`📱 User lookup result:`, user ? 'found' : 'not found');
+
+    if (!user) {
+      // Create new user only if no user exists with this phone or firebaseUid
+      try {
+        console.log(`📱 Creating new user for phone: ${phone}`);
+        user = await User.create({
+          fullName: `User ${phone}`,
+          username: phone,
+          phone,
+          firebaseUid,
         });
-        
-        if (!user) {
-          res.status(400);
-          throw new Error("User creation failed due to duplicate data");
+        console.log(`📱 New user created:`, user._id);
+      } catch (error) {
+        console.error('❌ Error creating user:', error);
+        // Handle duplicate key error
+        if (error.code === 11000) {
+          console.log('📱 Duplicate key error, finding existing user');
+          // If duplicate error, try to find the existing user
+          user = await User.findOne({
+            $or: [
+              { firebaseUid },
+              { phone },
+              { username: phone }
+            ]
+          });
+
+          if (!user) {
+            console.error('❌ User creation failed due to duplicate data');
+            return res.status(400).json({
+              message: "User creation failed due to duplicate data"
+            });
+          }
+
+          // Update the existing user with the new firebaseUid if needed
+          if (!user.firebaseUid && firebaseUid) {
+            user.firebaseUid = firebaseUid;
+            await user.save();
+            console.log(`📱 Updated existing user with firebaseUid`);
+          }
+        } else {
+          console.error('❌ Unexpected error creating user:', error);
+          return res.status(500).json({
+            message: "Internal server error",
+            error: error.message
+          });
         }
-        
-        // Update the existing user with the new firebaseUid if needed
-        if (!user.firebaseUid && firebaseUid) {
-          user.firebaseUid = firebaseUid;
-          await user.save();
-        }
-      } else {
-        throw error;
+      }
+    } else {
+      console.log(`📱 Found existing user:`, user._id);
+      // Update existing user's firebaseUid if it's different
+      if (user.firebaseUid !== firebaseUid) {
+        user.firebaseUid = firebaseUid;
+        await user.save();
+        console.log(`📱 Updated user firebaseUid`);
+      }
+
+      // Update phone if it's different
+      if (user.phone !== phone) {
+        user.phone = phone;
+        await user.save();
+        console.log(`📱 Updated user phone`);
       }
     }
-  } else {
-    // Update existing user's firebaseUid if it's different
-    if (user.firebaseUid !== firebaseUid) {
-      user.firebaseUid = firebaseUid;
-      await user.save();
+
+    if (!process.env.JWT_SECRET) {
+      console.error('❌ JWT_SECRET not set');
+      return res.status(500).json({
+        message: "Server configuration error"
+      });
     }
-    
-    // Update phone if it's different
-    if (user.phone !== phone) {
-      user.phone = phone;
-      await user.save();
-    }
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "30d",
+    });
+
+    console.log(`📱 Authentication successful for user:`, user._id);
+
+    res.status(200).json({
+      _id: user._id,
+      fullName: user.fullName,
+      username: user.username,
+      phone: user.phone,
+      profilePicture: user.profilePicture,
+      status: user.status,
+      token,
+    });
+  } catch (error) {
+    console.error('❌ Error in phoneAuth:', error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message
+    });
   }
-
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "30d",
-  });
-
-  res.status(200).json({
-    _id: user._id,
-    fullName: user.fullName,
-    username: user.username,
-    phone: user.phone,
-    profilePicture: user.profilePicture,
-    status: user.status,
-    token,
-  });
 });
 
 // Send verification code
