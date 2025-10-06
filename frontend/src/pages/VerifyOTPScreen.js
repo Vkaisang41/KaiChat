@@ -33,23 +33,45 @@ const VerifyOTPScreen = () => {
         throw new Error('Please enter a 6-digit code');
       }
 
-      // Demo verification
-      if (otp !== '123456') {
-        throw new Error('Invalid verification code');
-      }
-
-      // Call backend to register/login with demo data
-      const res = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/phone-auth`, {
-        phone: phoneNumber,
-        firebaseUid: `demo-${Date.now()}`, // Demo UID
+      // First, verify the code
+      const verifyResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/verify-code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone: phoneNumber, code: otp }),
       });
 
-      localStorage.setItem('token', res.data.token);
-      const userData = { ...res.data };
+      const verifyData = await verifyResponse.json();
+
+      if (!verifyResponse.ok) {
+        throw new Error(verifyData.message || 'Invalid verification code');
+      }
+
+      // Code verified successfully, now authenticate the user
+      const authResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/phone-auth`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phone: phoneNumber,
+          firebaseUid: `user-${Date.now()}`, // Generate unique Firebase UID
+        }),
+      });
+
+      const authData = await authResponse.json();
+
+      if (!authResponse.ok) {
+        throw new Error(authData.message || 'Authentication failed');
+      }
+
+      localStorage.setItem('token', authData.token);
+      const userData = { ...authData };
       delete userData.token;
       localStorage.setItem('user', JSON.stringify(userData));
 
-      console.log('✅ Demo login successful:', userData);
+      console.log('✅ Login successful:', userData);
       navigate('/');
     } catch (err) {
       setError(err.message || 'Verification failed');
@@ -68,9 +90,22 @@ const VerifyOTPScreen = () => {
         throw new Error('Phone number not found');
       }
 
-      // Demo resend
-      console.log(`📱 Demo: SMS code "123456" resent to ${phoneNumber}`);
-      alert(`Demo: SMS code "123456" resent to ${phoneNumber}`);
+      // Call backend to resend verification code
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/send-code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone: phoneNumber }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to resend verification code');
+      }
+
+      alert(`Verification code resent to ${phoneNumber}`);
     } catch (err) {
       setError(err.message || 'Failed to resend code');
     } finally {

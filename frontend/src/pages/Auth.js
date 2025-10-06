@@ -28,10 +28,25 @@ const Auth = () => {
         throw new Error("Please enter a valid phone number");
       }
 
-      // Simulate sending SMS (replace with Firebase later)
-      console.log(`📱 Demo: SMS sent to ${formattedPhone}`);
-      alert(`Demo: SMS code "${DEMO_OTP}" sent to ${formattedPhone}`);
+      // Call backend to send verification code
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/send-code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone: formattedPhone }),
+      });
 
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to send verification code');
+      }
+
+      // Store phone for verification
+      localStorage.setItem('phoneNumber', formattedPhone);
+
+      alert(`Verification code sent to ${formattedPhone}`);
       setStep("otp");
     } catch (err) {
       setError(err.message || "Failed to send code");
@@ -46,25 +61,51 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      // Demo verification (replace with Firebase later)
-      if (otp !== DEMO_OTP) {
-        throw new Error("Invalid verification code");
-      }
-
       const formattedPhone = phone.startsWith("+") ? phone : `+${phone}`;
 
-      // Call backend to register/login with demo data
-      const res = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/phone-auth`, {
-        phone: formattedPhone,
-        firebaseUid: `demo-${Date.now()}`, // Demo UID
+      if (otp.length !== 6) {
+        throw new Error("Please enter a 6-digit code");
+      }
+
+      // First, verify the code
+      const verifyResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/verify-code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone: formattedPhone, code: otp }),
       });
 
-      localStorage.setItem("token", res.data.token);
-      const userData = { ...res.data };
+      const verifyData = await verifyResponse.json();
+
+      if (!verifyResponse.ok) {
+        throw new Error(verifyData.message || 'Invalid verification code');
+      }
+
+      // Code verified successfully, now authenticate the user
+      const authResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/phone-auth`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phone: formattedPhone,
+          firebaseUid: `user-${Date.now()}`, // Generate unique Firebase UID
+        }),
+      });
+
+      const authData = await authResponse.json();
+
+      if (!authResponse.ok) {
+        throw new Error(authData.message || 'Authentication failed');
+      }
+
+      localStorage.setItem("token", authData.token);
+      const userData = { ...authData };
       delete userData.token;
       localStorage.setItem("user", JSON.stringify(userData));
 
-      console.log("✅ Demo login successful:", userData);
+      console.log("✅ Login successful:", userData);
       navigate("/");
     } catch (err) {
       setError(err.message || "Verification failed");
@@ -136,10 +177,6 @@ const Auth = () => {
         )}
       </form>
 
-      {/* Demo mode indicator */}
-      <div style={{ textAlign: 'center', marginTop: '20px', color: '#666', fontSize: '14px' }}>
-        🔧 Demo Mode - Use code: 123456
-      </div>
     </div>
   );
 };

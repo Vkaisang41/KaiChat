@@ -22,12 +22,26 @@ const LoginScreen = () => {
         throw new Error('Please enter a valid phone number');
       }
 
-      // Demo mode: Skip Firebase auth for testing
-      console.log(`📱 Demo: SMS code "123456" sent to ${formattedPhone}`);
-      alert(`Demo: SMS code "123456" sent to ${formattedPhone}`);
+      // Call backend to send verification code
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/send-code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone: formattedPhone }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to send verification code');
+      }
 
       // Store phone for next screen
       localStorage.setItem('phoneNumber', formattedPhone);
+
+      // Show success message
+      alert(`Verification code sent to ${formattedPhone}`);
 
       navigate('/verify-otp');
     } catch (err) {
