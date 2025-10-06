@@ -5,6 +5,20 @@ import cors from "cors";
 import http from "http";
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
+import User from "./models/User.js";
+
+// Import routes
+import authRoutes from "./routes/authRoutes.js";
+import chatRoutes from "./routes/chatRoutes.js";
+import contactRoutes from "./routes/contactRoutes.js";
+import emojiRoutes from "./routes/emojiRoutes.js";
+import fileRoutes from "./routes/fileRoutes.js";
+import groupRoutes from "./routes/groupRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import callRoutes from "./routes/callRoutes.js";
+
+// Import socket handler
+import chatSocket from "./sockets/chatSocket.js";
 
 // ----------------- Setup -----------------
 dotenv.config();
@@ -28,6 +42,16 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// ----------------- Routes -----------------
+app.use('/api/auth', authRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/contacts', contactRoutes);
+app.use('/api/emojis', emojiRoutes);
+app.use('/api/files', fileRoutes);
+app.use('/api/groups', groupRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/calls', callRoutes);
 
 // ----------------- MongoDB Connection -----------------
 mongoose
@@ -57,19 +81,27 @@ app.get("/api/protected", authenticateToken, (req, res) => {
   res.json({ message: "This is a protected route", user: req.user });
 });
 
-// ----------------- Socket.io -----------------
-io.on("connection", (socket) => {
-  console.log("🟢 A user connected:", socket.id);
-
-  socket.on("chatMessage", (msg) => {
-    console.log("💬 Message received:", msg);
-    io.emit("chatMessage", msg);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("🔴 A user disconnected:", socket.id);
-  });
+// ----------------- Socket.io Auth Middleware -----------------
+io.use(async (socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (!token) {
+    return next(new Error('Authentication error'));
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select("-password");
+    if (!user) {
+      return next(new Error('User not found'));
+    }
+    socket.user = user;
+    next();
+  } catch (err) {
+    next(new Error('Authentication error'));
+  }
 });
+
+// ----------------- Socket.io -----------------
+chatSocket(io);
 
 // ----------------- Start Server -----------------
 const PORT = process.env.PORT || 5000;

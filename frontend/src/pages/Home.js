@@ -52,7 +52,7 @@ function ChatHomeScreen() {
     try {
       setLoadingContacts(true);
       const token = localStorage.getItem("token");
-      const response = await axios.get('http://localhost:5000/api/contacts?sortBy=recent', {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/contacts?sortBy=recent`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -130,7 +130,7 @@ function ChatHomeScreen() {
 
         // Initialize socket connection
         const token = localStorage.getItem("token");
-        const newSocket = io('http://localhost:5000', {
+        const newSocket = io(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`, {
           auth: {
             token: token
           }
@@ -183,7 +183,7 @@ function ChatHomeScreen() {
         const joinUserGroups = async () => {
           try {
             const token = localStorage.getItem("token");
-            const groupsResponse = await axios.get('http://localhost:5000/api/groups', {
+            const groupsResponse = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/groups`, {
               headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -218,7 +218,7 @@ function ChatHomeScreen() {
   const loadMessages = async (room = "global") => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`http://localhost:5000/api/chat/messages/${room}`, {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/chat/messages/${room}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setChatMessages(response.data);
@@ -230,7 +230,7 @@ function ChatHomeScreen() {
   const loadGroups = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get('http://localhost:5000/api/groups', {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/groups`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setGroups(response.data);
@@ -302,7 +302,7 @@ function ChatHomeScreen() {
   const handleReaction = async (messageId, emoji) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.post(`http://localhost:5000/api/chat/messages/${messageId}/reactions`,
+      await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/chat/messages/${messageId}/reactions`,
         { emoji },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -316,7 +316,7 @@ function ChatHomeScreen() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`http://localhost:5000/api/chat/messages/search?q=${encodeURIComponent(searchQuery)}`, {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/chat/messages/search?q=${encodeURIComponent(searchQuery)}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSearchResults(response.data);
@@ -346,7 +346,7 @@ function ChatHomeScreen() {
 
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/contacts/${contactId}`, {
+      await axios.delete(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/contacts/${contactId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -371,7 +371,7 @@ function ChatHomeScreen() {
       const token = localStorage.getItem("token");
       
       const response = await axios.put(
-        `http://localhost:5000/api/contacts/${contactId}`,
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/contacts/${contactId}`,
         { isFavorite: !contact.isFavorite },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -427,7 +427,7 @@ function ChatHomeScreen() {
   const handleSyncContacts = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post('http://localhost:5000/api/contacts/sync', {}, {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/contacts/sync`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -444,7 +444,7 @@ function ChatHomeScreen() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post('http://localhost:5000/api/groups', {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/groups`, {
         name: groupName,
         description: groupDescription,
       }, {
@@ -473,7 +473,7 @@ function ChatHomeScreen() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post('http://localhost:5000/api/files/upload', formData, {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/files/upload`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'

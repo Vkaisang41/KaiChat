@@ -39,7 +39,7 @@ const VerifyOTPScreen = () => {
       }
 
       // Call backend to register/login with demo data
-      const res = await axios.post('http://localhost:5000/api/auth/phone-auth', {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/phone-auth`, {
         phone: phoneNumber,
         firebaseUid: `demo-${Date.now()}`, // Demo UID
       });
