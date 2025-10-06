@@ -158,31 +158,51 @@ export const storeVerificationCode = (phone, code = null) => {
  * @returns {object} Verification result
  */
 export const verifyCode = (phone, code) => {
-  const storedData = activeVerificationCodes.get(phone);
-  
-  if (!storedData) {
-    return { success: false, error: 'No verification code found for this phone number' };
+  try {
+    console.log(`🔍 Verifying code for phone: ${phone}, code: ${code}`);
+    console.log(`🔍 Active codes in memory:`, Array.from(activeVerificationCodes.keys()));
+
+    const storedData = activeVerificationCodes.get(phone);
+
+    if (!storedData) {
+      console.error(`❌ No stored data found for phone: ${phone}`);
+      return { success: false, error: 'No verification code found for this phone number' };
+    }
+
+    console.log(`🔍 Found stored data:`, {
+      code: storedData.code,
+      createdAt: storedData.createdAt,
+      attempts: storedData.attempts
+    });
+
+    if (isCodeExpired(storedData.createdAt)) {
+      console.log(`❌ Code expired for phone: ${phone}`);
+      activeVerificationCodes.delete(phone);
+      return { success: false, error: 'Verification code has expired' };
+    }
+
+    storedData.attempts++;
+    console.log(`🔍 Attempt ${storedData.attempts} for phone: ${phone}`);
+
+    if (storedData.attempts > 3) {
+      console.log(`❌ Too many attempts for phone: ${phone}`);
+      activeVerificationCodes.delete(phone);
+      return { success: false, error: 'Too many failed attempts. Please request a new code.' };
+    }
+
+    if (storedData.code === code) {
+      console.log(`✅ Code verified successfully for phone: ${phone}`);
+      activeVerificationCodes.delete(phone);
+      usedCodes.delete(code); // Allow code to be reused after successful verification
+      return { success: true };
+    }
+
+    console.log(`❌ Invalid code for phone: ${phone}. Expected: ${storedData.code}, Got: ${code}`);
+    return { success: false, error: 'Invalid verification code' };
+  } catch (error) {
+    console.error('❌ Error in verifyCode function:', error);
+    return { success: false, error: 'Internal verification error' };
   }
-  
-  if (isCodeExpired(storedData.createdAt)) {
-    activeVerificationCodes.delete(phone);
-    return { success: false, error: 'Verification code has expired' };
-  }
-  
-  storedData.attempts++;
-  
-  if (storedData.attempts > 3) {
-    activeVerificationCodes.delete(phone);
-    return { success: false, error: 'Too many failed attempts. Please request a new code.' };
-  }
-  
-  if (storedData.code === code) {
-    activeVerificationCodes.delete(phone);
-    usedCodes.delete(code); // Allow code to be reused after successful verification
-    return { success: true };
-  }
-  
-  return { success: false, error: 'Invalid verification code' };
 };
 
 /**
