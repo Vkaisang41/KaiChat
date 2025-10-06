@@ -36,10 +36,20 @@ const io = new Server(server, {
 // ----------------- Middleware -----------------
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "*",
+    origin: [
+      process.env.CLIENT_URL,
+      "https://kaichat-frontend.onrender.com",
+      "http://localhost:3000",
+      "http://localhost:5000"
+    ].filter(Boolean), // Remove falsy values
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// Handle preflight requests
+app.options('*', cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

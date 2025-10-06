@@ -181,32 +181,48 @@ export const phoneAuth = asyncHandler(async (req, res) => {
 
 // Send verification code
 export const sendVerificationCode = asyncHandler(async (req, res) => {
-  const { phone } = req.body;
+  try {
+    console.log('📱 Send verification code request received:', req.body);
 
-  if (!phone) {
-    res.status(400);
-    throw new Error("Phone number is required");
+    const { phone } = req.body;
+
+    if (!phone) {
+      console.error('❌ Phone number is required');
+      return res.status(400).json({
+        message: "Phone number is required"
+      });
+    }
+
+    console.log(`📱 Generating code for phone: ${phone}`);
+
+    // Generate and store unique verification code
+    const code = storeVerificationCode(phone);
+
+    console.log(`📱 Generated code: ${code} for phone: ${phone}`);
+
+    // Always return the code for testing (remove this in production)
+    console.log(`📱 Verification code for ${phone}: ${code}`);
+    return res.status(200).json({
+      message: "Verification code sent successfully",
+      code: code, // For testing purposes
+      phone: phone
+    });
+
+    // In production, you would send SMS here and NOT return the code
+    // Example: await sendSMS(phone, `Your KaiChat verification code is: ${code}`);
+    /*
+    res.status(200).json({
+      message: "Verification code sent successfully",
+      phone: phone
+    });
+    */
+  } catch (error) {
+    console.error('❌ Error in sendVerificationCode:', error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message
+    });
   }
-
-  // Generate and store unique verification code
-  const code = storeVerificationCode(phone);
-  
-  // Always return the code for testing (remove this in production)
-  console.log(`📱 Verification code for ${phone}: ${code}`);
-  return res.status(200).json({
-    message: "Verification code sent successfully",
-    code: code, // For testing purposes
-    phone: phone
-  });
-
-  // In production, you would send SMS here and NOT return the code
-  // Example: await sendSMS(phone, `Your KaiChat verification code is: ${code}`);
-  /*
-  res.status(200).json({
-    message: "Verification code sent successfully",
-    phone: phone
-  });
-  */
 });
 
 // Verify code endpoint
