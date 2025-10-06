@@ -105,7 +105,12 @@ const VerifyOTPScreen = () => {
         throw new Error(data.message || 'Failed to resend verification code');
       }
 
-      alert(`Verification code resent to ${phoneNumber}`);
+      // Show the verification code for testing
+      if (data.code) {
+        alert(`Verification code resent to ${phoneNumber}: ${data.code}\n\n(For testing purposes only)`);
+      } else {
+        alert(`Verification code resent to ${phoneNumber}`);
+      }
     } catch (err) {
       setError(err.message || 'Failed to resend code');
     } finally {

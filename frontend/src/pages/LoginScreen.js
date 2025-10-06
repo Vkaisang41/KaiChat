@@ -40,8 +40,12 @@ const LoginScreen = () => {
       // Store phone for next screen
       localStorage.setItem('phoneNumber', formattedPhone);
 
-      // Show success message
-      alert(`Verification code sent to ${formattedPhone}`);
+      // Show the verification code for testing
+      if (data.code) {
+        alert(`Verification code for ${formattedPhone}: ${data.code}\n\n(For testing purposes only)`);
+      } else {
+        alert(`Verification code sent to ${formattedPhone}`);
+      }
 
       navigate('/verify-otp');
     } catch (err) {

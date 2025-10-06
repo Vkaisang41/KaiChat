@@ -191,23 +191,22 @@ export const sendVerificationCode = asyncHandler(async (req, res) => {
   // Generate and store unique verification code
   const code = storeVerificationCode(phone);
   
-  // In development/emulator mode, return the code for testing
-  if (process.env.NODE_ENV === 'development' || process.env.FIREBASE_AUTH_EMULATOR_HOST) {
-    console.log(`📱 Verification code for ${phone}: ${code}`);
-    return res.status(200).json({
-      message: "Verification code sent successfully",
-      code: code, // Only in development
-      phone: phone
-    });
-  }
+  // Always return the code for testing (remove this in production)
+  console.log(`📱 Verification code for ${phone}: ${code}`);
+  return res.status(200).json({
+    message: "Verification code sent successfully",
+    code: code, // For testing purposes
+    phone: phone
+  });
 
-  // In production, you would send SMS here
+  // In production, you would send SMS here and NOT return the code
   // Example: await sendSMS(phone, `Your KaiChat verification code is: ${code}`);
-  
+  /*
   res.status(200).json({
     message: "Verification code sent successfully",
     phone: phone
   });
+  */
 });
 
 // Verify code endpoint

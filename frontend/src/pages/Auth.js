@@ -46,7 +46,12 @@ const Auth = () => {
       // Store phone for verification
       localStorage.setItem('phoneNumber', formattedPhone);
 
-      alert(`Verification code sent to ${formattedPhone}`);
+      // Show the verification code for testing
+      if (data.code) {
+        alert(`Verification code sent to ${formattedPhone}: ${data.code}\n\n(For testing purposes only)`);
+      } else {
+        alert(`Verification code sent to ${formattedPhone}`);
+      }
       setStep("otp");
     } catch (err) {
       setError(err.message || "Failed to send code");
