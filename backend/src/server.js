@@ -122,6 +122,27 @@ io.use(async (socket, next) => {
 // ----------------- Socket.io -----------------
 chatSocket(io);
 
+// ----------------- Error Handling Middleware -----------------
+app.use((error, req, res, next) => {
+  console.error('❌ Express error:', error);
+
+  // If response already sent, don't send again
+  if (res.headersSent) {
+    return next(error);
+  }
+
+  // Return JSON error for API routes
+  if (req.path.startsWith('/api/')) {
+    return res.status(error.status || 500).json({
+      message: error.message || 'Internal server error',
+      error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+
+  // For non-API routes, send a simple error message
+  res.status(error.status || 500).send('Internal Server Error');
+});
+
 // ----------------- Start Server -----------------
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {

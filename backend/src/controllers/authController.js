@@ -266,24 +266,44 @@ export const sendVerificationCode = asyncHandler(async (req, res) => {
 
 // Verify code endpoint
 export const verifyVerificationCode = asyncHandler(async (req, res) => {
-  const { phone, code } = req.body;
+  try {
+    console.log('📱 Verify code request received:', req.body);
 
-  if (!phone || !code) {
-    res.status(400);
-    throw new Error("Phone number and verification code are required");
+    const { phone, code } = req.body;
+
+    if (!phone || !code) {
+      console.error('❌ Phone number and verification code are required');
+      return res.status(400).json({
+        message: "Phone number and verification code are required"
+      });
+    }
+
+    console.log(`📱 Verifying code for phone: ${phone}, code: ${code}`);
+
+    const result = verifyCode(phone, code);
+
+    console.log(`📱 Verification result:`, result);
+
+    if (!result.success) {
+      console.error(`❌ Code verification failed: ${result.error}`);
+      return res.status(400).json({
+        message: result.error
+      });
+    }
+
+    console.log(`📱 Code verified successfully for phone: ${phone}`);
+
+    res.status(200).json({
+      message: "Code verified successfully",
+      phone: phone
+    });
+  } catch (error) {
+    console.error('❌ Error in verifyVerificationCode:', error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message
+    });
   }
-
-  const result = verifyCode(phone, code);
-  
-  if (!result.success) {
-    res.status(400);
-    throw new Error(result.error);
-  }
-
-  res.status(200).json({
-    message: "Code verified successfully",
-    phone: phone
-  });
 });
 
 // Get verification code (for development/testing only)
