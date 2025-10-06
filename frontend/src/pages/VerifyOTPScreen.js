@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import './VerifyOTPScreen.css';
 
 const VerifyOTPScreen = () => {
@@ -34,13 +33,21 @@ const VerifyOTPScreen = () => {
       }
 
       // First, verify the code
-      const verifyResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/verify-code`, {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      console.log('Frontend API URL:', apiUrl);
+      const verifyUrl = `${apiUrl}/api/auth/verify-code`;
+      console.log('Verify code URL:', verifyUrl);
+
+      const verifyResponse = await fetch(verifyUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ phone: phoneNumber, code: otp }),
       });
+
+      console.log('Verify response status:', verifyResponse.status);
+      console.log('Verify response ok:', verifyResponse.ok);
 
       const verifyData = await verifyResponse.json();
 
@@ -49,7 +56,10 @@ const VerifyOTPScreen = () => {
       }
 
       // Code verified successfully, now authenticate the user
-      const authResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/phone-auth`, {
+      const authUrl = `${apiUrl}/api/auth/phone-auth`;
+      console.log('Phone auth URL:', authUrl);
+
+      const authResponse = await fetch(authUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -59,6 +69,9 @@ const VerifyOTPScreen = () => {
           firebaseUid: `user-${Date.now()}`, // Generate unique Firebase UID
         }),
       });
+
+      console.log('Auth response status:', authResponse.status);
+      console.log('Auth response ok:', authResponse.ok);
 
       const authData = await authResponse.json();
 

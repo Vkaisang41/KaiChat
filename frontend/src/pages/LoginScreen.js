@@ -23,13 +23,21 @@ const LoginScreen = () => {
       }
 
       // Call backend to send verification code
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/send-code`, {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      console.log('Frontend API URL:', apiUrl);
+      const fullUrl = `${apiUrl}/api/auth/send-code`;
+      console.log('Full request URL:', fullUrl);
+
+      const response = await fetch(fullUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ phone: formattedPhone }),
       });
+
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
 
       const data = await response.json();
 
